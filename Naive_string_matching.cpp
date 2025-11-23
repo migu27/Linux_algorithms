@@ -15,7 +15,7 @@ const char* text = "A string-searching algorithm, sometimes called string-matchi
                     slow some search algorithms. One of many possible solutions is to search for the sequence \
                     of code units instead, but doing so may produce false matches unless the encoding is \
                     specifically designed to avoid it";
-char* pattern = (char*)" may ";
+char* pattern = (char*)"may";
 
 void naive_string_matching_v1() {
     uint32_t num_ops = 0;
@@ -55,8 +55,45 @@ void naive_string_matching_v2() {
     cout << ", Num operations:" << num_ops << "--------" << endl;
 }
 
+void naive_string_matching_v3() {
+    uint32_t num_ops = 0;
+    for (uint32_t i = 0; i < strlen(text) - strlen(pattern); ++i) {
+        bool found = true;
+        for (uint32_t j = 0; j < strlen(pattern) && found; ++j) {
+            found = found && (bool)(text[i+j] == pattern[j]);
+            num_ops++;
+        }
+        if (found) {
+            cout << "Found pattern '" << pattern << "' at position " << i << " ... ";
+            for (uint32_t k = i-10; k < i + strlen(pattern) + 10; ++k)
+                cout << text[k];
+            cout << endl;
+            i += strlen(pattern);
+        }
+    }
+    cout << "Text length:" << strlen(text) << ", Pattern length:" << strlen(pattern);
+    cout << ", Num operations:" << num_ops << "--------" << endl;
+}
+
+
+bool pattern_has_no_rep_chars() {
+    bool repeated_char = false;
+    for (int i = 0; i < strlen(pattern) && !repeated_char; ++i) {
+        char c = pattern[i];
+        for (int j = i+1; j < strlen(pattern); ++j) {
+            if (c == pattern[j]) {
+                repeated_char = true;
+                break;
+            }
+        }
+    }
+    return (!repeated_char);
+}
+
 int main() {
     naive_string_matching_v1();
     naive_string_matching_v2();
+    if (pattern_has_no_rep_chars())
+	    naive_string_matching_v3();
     return 0;
 }
