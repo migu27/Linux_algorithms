@@ -4,7 +4,7 @@
 
 using namespace std;
 
-const int NUM_STEPS = 10;
+const int NUM_STEPS = 20;
 
 // Small piece of code moved to a function to keep the algorithm's code clean
 void print(double val) {
@@ -44,18 +44,31 @@ double square_root_by_binary_search(int target) {
 
 double square_root_by_newton(int target) {
 	// Find the first value (right side of the interval) to start the iterations
-        int first_value = 0;
-        while (first_value * first_value < target) ++first_value;
+	int first_value = 0;
+	while (first_value * first_value < target) ++first_value;
 
 	double result = first_value;
 	print(result);
-        for (int step = 0; step < NUM_STEPS; step++) {
+	for (int step = 0; step < NUM_STEPS; step++) {
 		result = 0.5 * (result + target/result);
 		print(result);
-        }
+	}
+	return result;
+}
 
-        return result;
+double square_root_by_halley(int target) {
+	// Find the first value (right side of the interval) to start the iterations
+	int first_value = 0;
+	while (first_value * first_value < target) ++first_value;
 
+	double result = first_value;
+	print(result);
+	for (int step = 0; step < NUM_STEPS; step++) {
+		result = (result*result*result + 3*(double)target*result) / (3*result*result + (double)target);
+		print(result);
+	}
+
+	return result;
 }
 
 int main(int argc, char* argv[]) {
@@ -66,10 +79,13 @@ int main(int argc, char* argv[]) {
 	int target = stoi(argv[1]);
 	cout << "Square root of " << target << ":" << endl;
 	double result = square_root_by_binary_search(target);
-	cout << "Result: " << result << endl;
+	cout << "Result ('binary search' of Babylon algorithm): " << result << endl;
 
 	result = square_root_by_newton(target);
-        cout << "Result: " << result << endl;
+	cout << "Result (Newton's method): " << result << endl;
+
+	result = square_root_by_halley(target);
+	cout << "Result (Halley's method): " << result << endl;
 
 	return 0;
 }
