@@ -106,20 +106,22 @@ void algorithm_1() {
             tmp_array[output_idx++] = a[j];
         }
     }
+    
     // If input was: 00010100 00010100 ...
     // Now we have: tmp_array[0] = 1, tmp_array[1] = 0, tmp_array[2] = 1, tmp_array[3] = 0, tmp_array[4] = 0,
     //              tmp_array[5] = 1, tmp_array[6] = 0, tmp_array[7] = 1, tmp_array[8] = 0, tmp_array[9] = 0,...
 
     // Convert from tmp_array into output
-    uint8_t val = 0;
-    for (int k = 0, out_idx = 0, exp = 7; k < (BUFFER_SZ * 8 - 1); ++k, --exp) {
+    uint8_t val = 0, exp = 7;
+    for (int k = 0, out_idx = 0; k < (BUFFER_SZ * 8 - 1); ++k) {
         val += tmp_array[k] * pow(2, exp);
-        if ((k > 0) && (k%8 == 0)) {
+        if (exp == 0) {
             // Got a full byte: write it and reset counters
             output_buffer[out_idx++] = val;
             val = 0;
-            exp = 7;
+            exp = 8;
         }
+        --exp;
     }   
 }
 
