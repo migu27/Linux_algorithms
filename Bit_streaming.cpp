@@ -126,21 +126,23 @@ void algorithm_2() {
    uint8_t mask = 0;
    while (r_byte < INPUT_SZ) {        
         // Read 1 bit from current position (r_bit), if we can. If not, move to next byte
-        if (r_bit < 0)
+        if (r_bit < 0) {
             r_byte++;
+            r_bit = 4;
+        }
         else {
             // Reading from MSB to LSB (higher to lower indices in the array)
             mask = 0;
-            mask |= r_bit; // Example: if r_bit == 3 => read_tmp == 00001000  
+            mask |= (uint8_t) pow(2, r_bit); // Example: if r_bit == 3 => mask == 00001000  
             tmp_val = input[r_byte] & mask;
             // Put it as LSB in this temporary value
-            for (int i = r_bit; i > 0; --i)
-                tmp_val = tmp_val >> 1;
+            tmp_val = tmp_val >> r_bit;
             // Now we write this bit, at the LSB of "tmp_read" into its position given by w_byte and w_bit
-            if (w_bit < 0)
+            if (w_bit < 0) {
                 ++w_byte;
-            for (int i = 0; i <= w_bit; ++i)
-                tmp_val << 1;
+                w_bit = 7;
+            }
+            tmp_val = tmp_val << w_bit;
             // We have the bit in the position indicated by w_bit: let's write it
             output_buffer[w_byte] |= tmp_val;
             // Prepare indices for next iteration
@@ -156,6 +158,8 @@ int main(int argc, char* argv[]) {
     algorithm_1();
     print_output();
 
+    memset(output_buffer, 0, sizeof(output_buffer));
+    
     algorithm_2();
     print_output();    
     
