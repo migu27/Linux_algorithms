@@ -3,8 +3,6 @@
 #include <stdint.h>
 #include <string.h>
 
-
-
 /*
 PROBLEM: We receive a stream of bytes, for example from a sensor:
 
@@ -14,7 +12,7 @@ And have to get the least significant 5 bits of each byte, packing the result in
 
 [D E F G H L M N] [O P T U V X Y Z] ...
 
-This looks trivial but it's not - just give it a try
+This looks trivial but it's not - just give it a try.
 */
 
 const int BUFFER_SZ = 12;
@@ -38,8 +36,6 @@ void init() {
         std::cout << " ";
     }
     std::cout << std::endl;
-    
-
     memset(output_buffer, 0, sizeof(output_buffer));
 }
 
@@ -58,18 +54,6 @@ void print_output() {
     std::cout << std::endl;
 }
 
-uint8_t get_mask(const uint8_t bits_to_read) {
-    /* Bits to read   |   mask
-       -----------------------
-            5         |   0x1F
-            4         |   0x0F 
-            3         |   0x07
-            2         |   0x03
-            1         |   0x01
-    */
-   return (pow(2, bits_to_read) - 1);
-}
-
 void get_digits(uint8_t number, uint8_t *result) {
     // Returns an array of 5 elements where each contain a single bit 
     // corresponding to the binary representation of "number"
@@ -86,7 +70,7 @@ void get_digits(uint8_t number, uint8_t *result) {
 // _________________________________________ Helper functions (end)
 
 void algorithm_1() {
-    // This algorithm avoids the hell of shifts and masks, but requires more memory.
+    // This algorithm avoids shifts and masks, but requires more memory.
     // It converts each original 5 bit value into an array of 5 separate numbers (one
     // number per binary digit), into a bigger array. Then, it is just a matter of reading 
     // elements (=digits) of this array in groups of 8 and converting back into a single  
@@ -96,7 +80,6 @@ void algorithm_1() {
     uint8_t tmp_array[BUFFER_SZ * 8];
     int output_idx = 0;
     uint8_t a[5];
-
     // Traverse the input stream. For each element (byte), discard the 3 significant bits 
     // and convert the remaining 5 bits into 5 separate elements of a temporary buffer ("tmp_array") 
     memset(tmp_array, 0, sizeof(tmp_array));
@@ -106,7 +89,6 @@ void algorithm_1() {
             tmp_array[output_idx++] = a[j];
         }
     }
-    
     // If input was: 00010100 00010100 ...
     // Now we have: tmp_array[0] = 1, tmp_array[1] = 0, tmp_array[2] = 1, tmp_array[3] = 0, tmp_array[4] = 0,
     //              tmp_array[5] = 1, tmp_array[6] = 0, tmp_array[7] = 1, tmp_array[8] = 0, tmp_array[9] = 0,...
@@ -126,85 +108,56 @@ void algorithm_1() {
 }
 
 void algorithm_2() {
-    // We need signed values for "w_bit" only, but I'm using "int" for all
-    int r_bit = 4, r_byte = 0;
-    int w_bit = 7, w_byte = 0; 
-    
     /*
-        My algorithm:
-
-        In the input stream I keep 2 indices: "r_byte" is the current read byte, and "r_bit" is the 
-        next bit to be read, starting as 0 from the right (LSB) in the current read byte. According to 
-        this, we start with r_byte == 0 and r_bit == 4:
-
-        A B C D E F G H   I J K L M N O P      
+        A B C D E F G H   I J K L M N O P  ...    
               ^
               |
             r_bit=4
             
-        So our first operation would be reading bits D E F G H and copying into the output stream.
-        In the output stream I keep 2 indices as well_: "w_bit" points to the next bit to write, and 
-        "w_byte" points to the current byte where we are writing. We start with w_byte == 0 and 
-        w_bit == 7 (which is the MSB):
-
         D E F G H L M N 
         ^
         |
       w_bit=7      
-
-        -Case 1: w_bit > r_bit
-         This means that we have more room in the output byte than bits available in the input byte.
-         I read the bits available, prepare them (masking and shifting appropriately),
-         and move to the next input byte. I don't write yet this partial result in the output byte: I'll 
-         do that when I have a complete byte to write.
-
-
     */
-
-    uint8_t partial = 0;
-    uint8_t mask = 0;
-    while (r_byte < INPUT_SZ) {
-        // We need to read w_bit+1 bits to complete the current written byte, and have available r_bit+1 bits in current read byte
-        if (w_bit > r_bit) {
-            // Read r_bit+1 (0 to r_bit) and increment r_byte
-            uint8_t tmp = input[r_byte];
-            mask = get_mask(r_bit + 1);
-            tmp = tmp & mask;
-            tmp = tmp << (w_bit - r_bit);  
-            w_bit -= (r_bit + 1);    
-            partial |= tmp;
-            r_bit = 0;
-        }            
+   int r_bit = 4, r_byte = 0;
+   int w_bit = 7, w_byte = 0; 
+   uint8_t tmp_write = 0;
+   uint8_t tmp_val = 0;
+   uint8_t mask = 0;
+   while (r_byte < INPUT_SZ) {        
+        // Read 1 bit from current position (r_bit), if we can. If not, move to next byte
+        if (r_bit < 0)
+            r_byte++;
         else {
-            // Read w_bit bit from current byte and accomodate in current partial value ORing with what we had
-            uint8_t tmp = input[r_byte];
-            tmp = tmp >> (r_bit - w_bit);
-            mask = get_mask(w_bit + 1);
-            tmp = tmp & mask;
-            partial |= tmp;
-            output_buffer[w_byte] = partial; 
-            partial = 0;
-            r_bit -= (w_bit + 1);
-            w_bit = -1;
+            // Reading from MSB to LSB (higher to lower indices in the array)
+            mask = 0;
+            mask |= r_bit; // Example: if r_bit == 3 => read_tmp == 00001000  
+            tmp_val = input[r_byte] & mask;
+            // Put it as LSB in this temporary value
+            for (int i = r_bit; i > 0; --i)
+                tmp_val = tmp_val >> 1;
+            // Now we write this bit, at the LSB of "tmp_read" into its position given by w_byte and w_bit
+            if (w_bit < 0)
+                ++w_byte;
+            for (int i = 0; i <= w_bit; ++i)
+                tmp_val << 1;
+            // We have the bit in the position indicated by w_bit: let's write it
+            output_buffer[w_byte] |= tmp_val;
+            // Prepare indices for next iteration
+            --r_bit;
+            --w_bit;
         }
-        if (r_bit <= 0) {
-            r_bit = 4;
-            ++r_byte;
-        }
-        if (w_bit < 0) {
-            w_bit = 7;
-            ++w_byte;
-        }
-    } 
-    std::cout << "partial: " << (int) partial << ", w_byte: " << (int) w_byte << ", r_byte: " << (int) r_byte << std::endl;       
+    }
 }
 
 int main(int argc, char* argv[]) {
     init();
 
     algorithm_1();
-    
     print_output();
+
+    algorithm_2();
+    print_output();    
     
     return 0;
 }
