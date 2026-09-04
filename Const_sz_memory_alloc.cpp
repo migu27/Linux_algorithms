@@ -42,6 +42,15 @@ void mem_free(void* ptr) {
     std::cout << "Freeing slot " << slot_index << std::endl;
 }
 
+// ----------------------------------
+// Alternative implementation
+typedef struct {
+    uint8_t data[SLOT_SZ];
+    bool used;
+} Slot;
+Slot heap[NUM_SLOTS];
+// ----------------------------------
+
 int main() {
     init();
     uint8_t* ptr1 = (uint8_t*) mem_alloc(); std::cout << (ptr1 - heap) << std::endl;
