@@ -48,7 +48,7 @@ typedef struct {
     uint8_t data[SLOT_SZ];
     bool used;
 } Slot;
-Slot heap[NUM_SLOTS];
+Slot heap2[NUM_SLOTS];
 // ----------------------------------
 
 int main() {
@@ -60,6 +60,16 @@ int main() {
     uint8_t* ptr5 = (uint8_t*) mem_alloc(); std::cout << (ptr5 - heap) << std::endl;
     mem_free(ptr3);
     mem_free(ptr4);
+    mem_free(ptr1);
+    mem_free(ptr2);
+    mem_free(ptr5);
+    // Is this valid? user requests 2 slots and concatenates into a single one of 128 bytes
+    // uint8_t* ptr6 = (uint8_t*) mem_alloc();
+    // uint8_t* ptr7 = (uint8_t*) mem_alloc();
+    // for (int i = 0; i < 128; ++i) {
+        // ptr6[i] = i;
+    // }
+    // It is not valid! There is NO WARRANTY mem_alloc() returns contiguous slots!!
 
     return 0;
 }
