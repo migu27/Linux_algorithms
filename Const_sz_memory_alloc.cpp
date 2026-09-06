@@ -7,8 +7,8 @@ extern "C" {
 }
 #include <iostream>
 
-constexpr int CAPACITY = 64 * 1024;
-constexpr int SLOT_SZ = 64;
+constexpr int CAPACITY = 128; // Toy size so we can visualize in the console
+constexpr int SLOT_SZ = 1;   // Toy size
 constexpr int NUM_SLOTS = CAPACITY / SLOT_SZ;
 uint8_t heap[CAPACITY]; // The heap is just a chunk of bytes (uint8_t)
 bool free_slots[NUM_SLOTS]; // 'False' means the slot in the heap is used.
@@ -51,18 +51,38 @@ typedef struct {
 Slot heap2[NUM_SLOTS];
 // ----------------------------------
 
+void print_heap_status() {
+    for (int i = 0; i < NUM_SLOTS; ++i) {
+        if (free_slots[i] == true)
+            std::cout << "o";
+        else
+            std::cout << "x";
+    }
+    std::cout << std::endl;
+}
+
 int main() {
     init();
-    uint8_t* ptr1 = (uint8_t*) mem_alloc(); std::cout << (ptr1 - heap) << std::endl;
-    uint8_t* ptr2 = (uint8_t*) mem_alloc(); std::cout << (ptr2 - heap) << std::endl;
-    uint8_t* ptr3 = (uint8_t*) mem_alloc(); std::cout << (ptr3 - heap) << std::endl;
-    uint8_t* ptr4 = (uint8_t*) mem_alloc(); std::cout << (ptr4 - heap) << std::endl;
-    uint8_t* ptr5 = (uint8_t*) mem_alloc(); std::cout << (ptr5 - heap) << std::endl;
+    uint8_t* ptr1 = (uint8_t*) mem_alloc(); 
+    print_heap_status();
+    uint8_t* ptr2 = (uint8_t*) mem_alloc(); 
+    print_heap_status();
+    uint8_t* ptr3 = (uint8_t*) mem_alloc(); 
+    print_heap_status();
+    uint8_t* ptr4 = (uint8_t*) mem_alloc(); 
+    print_heap_status();
+    uint8_t* ptr5 = (uint8_t*) mem_alloc(); 
+    print_heap_status();
     mem_free(ptr3);
+    print_heap_status();
     mem_free(ptr4);
+    print_heap_status();
     mem_free(ptr1);
+    print_heap_status();
     mem_free(ptr2);
+    print_heap_status();
     mem_free(ptr5);
+    print_heap_status();
     // Is this valid? user requests 2 slots and concatenates into a single one of 128 bytes
     // uint8_t* ptr6 = (uint8_t*) mem_alloc();
     // uint8_t* ptr7 = (uint8_t*) mem_alloc();
